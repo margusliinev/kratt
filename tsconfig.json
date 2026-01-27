@@ -1,0 +1,24 @@
+{
+    "compilerOptions": {
+        "noPropertyAccessFromIndexSignature": false,
+        "noFallthroughCasesInSwitch": true,
+        "noUncheckedIndexedAccess": true,
+        "noUnusedParameters": true,
+        "noImplicitOverride": true,
+        "noUnusedLocals": true,
+        "forceConsistentCasingInFileNames": true,
+        "allowImportingTsExtensions": true,
+        "verbatimModuleSyntax": true,
+        "skipLibCheck": true,
+        "allowJs": true,
+        "noEmit": true,
+        "strict": true,
+        "moduleResolution": "bundler",
+        "moduleDetection": "force",
+        "module": "Preserve",
+        "target": "ESNext",
+        "lib": ["ESNext"],
+        "jsx": "react-jsx",
+        "jsxImportSource": "@opentui/react"
+    }
+}
