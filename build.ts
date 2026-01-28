@@ -14,7 +14,7 @@ const formatFileSize = (bytes: number): string => {
     return `${size.toFixed(2)} ${units[unitIndex]}`;
 };
 
-const binary = Bun.file('./server');
+const binary = Bun.file('./kratt');
 if (await binary.exists()) {
     await binary.delete();
 }
@@ -22,8 +22,8 @@ if (await binary.exists()) {
 console.log('🚀 Build process started');
 
 const result = await Bun.build({
-    entrypoints: ['src/server.tsx'],
-    compile: { outfile: 'server' },
+    entrypoints: ['src/index.tsx'],
+    compile: { outfile: 'kratt' },
     target: 'bun',
     minify: true,
 });
