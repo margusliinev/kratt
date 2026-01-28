@@ -1,4 +1,4 @@
-import z from 'zod';
+import { z } from 'zod';
 
 export const validate = <T>(schema: z.ZodSchema<T>, data: unknown): T => {
     const result = schema.safeParse(data);

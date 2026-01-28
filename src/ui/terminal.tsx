@@ -1,52 +1,83 @@
 import type { EchoResponse } from '../common/types';
-import { TextAttributes } from '@opentui/core';
+import { Logo, InputPrompt, StatusIndicator, HelpBar, ResponsePanel, Divider } from './components';
+import { colors, spacing, widths } from './theme';
 import { useCallback, useState } from 'react';
+import { useKeyboard } from '@opentui/react';
+import { MainLayout } from './layouts';
 import { api } from '../common/client';
+
+type AppState = 'idle' | 'loading' | 'success' | 'error';
 
 export function Terminal() {
     const [inputValue, setInputValue] = useState('');
     const [response, setResponse] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
+    const [state, setState] = useState<AppState>('idle');
 
     const handleSubmit = useCallback(() => {
-        if (!inputValue.trim()) return;
+        if (!inputValue.trim() || state === 'loading') return;
 
-        setIsLoading(true);
+        setState('loading');
         setResponse('');
 
         api.post<EchoResponse>('/api/echo', { message: inputValue })
-            .then((data) => setResponse(data.message))
-            .catch((error) => setResponse(`Error: ${error instanceof Error ? error.message : 'Failed to connect'}`))
-            .finally(() => setIsLoading(false));
-    }, [inputValue]);
+            .then((data) => {
+                setResponse(data.message);
+                setState('success');
+            })
+            .catch((error) => {
+                setResponse(error instanceof Error ? error.message : 'Connection failed');
+                setState('error');
+            });
+    }, [inputValue, state]);
+
+    useKeyboard((key) => {
+        if (key.name === 'escape' && response) {
+            setResponse('');
+            setInputValue('');
+            setState('idle');
+        }
+    });
+
+    const helpHints = [
+        { keys: 'Enter', action: 'Send' },
+        { keys: 'Esc', action: 'Clear' },
+        { keys: 'Ctrl+C', action: 'Exit' }
+    ];
 
     return (
-        <box flexDirection='column' alignItems='center' justifyContent='center' flexGrow={1} gap={2}>
-            <box justifyContent='center' alignItems='flex-end'>
-                <ascii-font font='tiny' text='Kratt' />
-                <text attributes={TextAttributes.DIM}>AI Coding Agent</text>
-            </box>
+        <MainLayout
+            header={<Logo showTagline={true} size='md' />}
+            footer={
+                <box flexDirection='column' alignItems='center' gap={spacing.sm}>
+                    <Divider length={50} variant='solid' />
+                    <HelpBar hints={helpHints} />
+                </box>
+            }
+        >
+            <box flexDirection='column' alignItems='center' gap={spacing.lg} width={widths.input}>
+                {state === 'idle' && !response && <text fg={colors.fg.secondary}>What do you want to build?</text>}
 
-            <box flexDirection='column' gap={1} padding={1} borderStyle='rounded' width={60}>
-                <text fg='#888888'>Type a message and press Enter:</text>
-                <input
-                    placeholder='Enter your message...'
-                    width={56}
-                    backgroundColor='#1a1a1a'
-                    focusedBackgroundColor='#2a2a2a'
-                    textColor='#ffffff'
-                    cursorColor='#00ff00'
+                {(state === 'loading' || response) && (
+                    <ResponsePanel
+                        content={state === 'loading' ? 'Thinking...' : response}
+                        type={state === 'error' ? 'error' : 'assistant'}
+                        width={widths.input}
+                    />
+                )}
+
+                <InputPrompt
+                    value={inputValue}
+                    placeholder='Ask anything...'
                     focused={true}
+                    loading={state === 'loading'}
+                    disabled={state === 'loading'}
                     onInput={setInputValue}
                     onSubmit={handleSubmit}
+                    width={widths.input}
                 />
-            </box>
 
-            {(isLoading || response) && (
-                <box padding={1} borderStyle='rounded' width={60} title='Response'>
-                    <text fg={response.startsWith('Error') ? '#ff6666' : '#66ff66'}>{isLoading ? 'Sending...' : response}</text>
-                </box>
-            )}
-        </box>
+                <StatusIndicator status={state} />
+            </box>
+        </MainLayout>
     );
 }
