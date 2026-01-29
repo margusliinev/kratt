@@ -1,9 +1,9 @@
 import { colors, spacing } from '../theme';
 
-interface KeyHintProps {
+type KeyHintProps = {
     keys: string;
     action: string;
-}
+};
 
 export function KeyHint({ keys, action }: KeyHintProps) {
     return (
@@ -14,9 +14,9 @@ export function KeyHint({ keys, action }: KeyHintProps) {
     );
 }
 
-interface HelpBarProps {
+type HelpBarProps = {
     hints: Array<{ keys: string; action: string }>;
-}
+};
 
 export function HelpBar({ hints }: HelpBarProps) {
     return (

@@ -1,22 +1,16 @@
-import type { Message } from '../../common/chat';
+import type { Dimension } from '../../common/types';
+import type { Message } from '../../core';
 import { MessageBubble } from './MessageBubble';
 import { colors, spacing } from '../theme';
 
-type Dimension = number | 'auto' | `${number}%`;
-
-interface ConversationPanelProps {
+type ConversationPanelProps = {
     messages: Message[];
     streamingContent?: string;
     width?: Dimension;
     height?: Dimension;
-}
+};
 
-export function ConversationPanel({
-    messages,
-    streamingContent,
-    width = '100%' as Dimension,
-    height = '100%' as Dimension
-}: ConversationPanelProps) {
+export function ConversationPanel({ messages, streamingContent, width = '100%', height = '100%' }: ConversationPanelProps) {
     const hasMessages = messages.length > 0 || streamingContent;
 
     return (
@@ -43,8 +37,8 @@ export function ConversationPanel({
                 </box>
             )}
 
-            {messages.map((message, index) => (
-                <MessageBubble key={index} role={message.role} content={message.content} />
+            {messages.map((message) => (
+                <MessageBubble key={message.id} role={message.role} content={message.content} />
             ))}
 
             {streamingContent !== undefined && <MessageBubble role='assistant' content={streamingContent} streaming={true} />}

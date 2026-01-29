@@ -1,12 +1,12 @@
 import type { ReactNode } from 'react';
 import { colors, spacing } from '../theme';
 
-interface ChatLayoutProps {
+type ChatLayoutProps = {
     header: ReactNode;
     conversation: ReactNode;
     input: ReactNode;
     footer: ReactNode;
-}
+};
 
 export function ChatLayout({ header, conversation, input, footer }: ChatLayoutProps) {
     return (

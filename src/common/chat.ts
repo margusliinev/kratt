@@ -17,7 +17,7 @@ const SYSTEM_PROMPT = `You are Kratt, an AI coding assistant. You help users wit
 Be concise and helpful. When showing code, use markdown code blocks with language identifiers.`;
 
 export async function* streamChat(messages: Message[]): AsyncGenerator<string> {
-    const stream = await client.messages.stream({
+    const stream = client.messages.stream({
         model: MODEL,
         max_tokens: MAX_TOKENS,
         system: SYSTEM_PROMPT,

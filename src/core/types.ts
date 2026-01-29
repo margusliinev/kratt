@@ -1,0 +1,31 @@
+export type MessageStatus = 'final' | 'streaming' | 'aborted' | 'error';
+export type MessageRole = 'user' | 'assistant' | 'system';
+
+export type Conversation = {
+    id: string;
+    title: string;
+    createdAt: number;
+    updatedAt: number;
+};
+
+export type Message = {
+    id: string;
+    conversationId: string;
+    role: MessageRole;
+    content: string;
+    status: MessageStatus;
+    createdAt: number;
+    updatedAt: number;
+};
+
+export type ConversationSummary = {
+    id: string;
+    title: string;
+    updatedAt: number;
+    messageCount: number;
+};
+
+export type ConversationWithMessages = {
+    conversation: Conversation;
+    messages: Message[];
+};

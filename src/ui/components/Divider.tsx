@@ -1,13 +1,13 @@
 import { TextAttributes } from '@opentui/core';
 import { colors } from '../theme';
 
-interface DividerProps {
+type DividerProps = {
     length?: number;
     variant?: 'solid' | 'dashed' | 'dotted' | 'rough';
     color?: string;
-}
+};
 
-const dividerChars = {
+const DIVIDER_CHARS = {
     solid: '─',
     dashed: '╌',
     dotted: '·',
@@ -17,7 +17,7 @@ const dividerChars = {
 export function Divider({ length = 40, variant = 'solid', color = colors.border.muted }: DividerProps) {
     return (
         <text fg={color} attributes={TextAttributes.DIM}>
-            {dividerChars[variant].repeat(length)}
+            {DIVIDER_CHARS[variant].repeat(length)}
         </text>
     );
 }

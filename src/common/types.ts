@@ -1,3 +1,1 @@
-export interface EchoResponse {
-    message: string;
-}
+export type Dimension = number | 'auto' | `${number}%`;

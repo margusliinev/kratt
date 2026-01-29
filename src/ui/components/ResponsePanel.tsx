@@ -3,14 +3,14 @@ import { TextAttributes } from '@opentui/core';
 
 type MessageType = 'assistant' | 'user' | 'system' | 'error';
 
-interface ResponsePanelProps {
+type ResponsePanelProps = {
     content: string;
     type?: MessageType;
     width?: number;
     showLabel?: boolean;
-}
+};
 
-const messageConfig: Record<MessageType, { label: string; labelColor: string; borderColor: string; contentColor: string }> = {
+const MESSAGE_CONFIG: Record<MessageType, { label: string; labelColor: string; borderColor: string; contentColor: string }> = {
     assistant: {
         label: 'KRATT',
         labelColor: colors.accent.primary,
@@ -38,7 +38,7 @@ const messageConfig: Record<MessageType, { label: string; labelColor: string; bo
 };
 
 export function ResponsePanel({ content, type = 'assistant', width = widths.input, showLabel = true }: ResponsePanelProps) {
-    const config = messageConfig[type];
+    const config = MESSAGE_CONFIG[type];
 
     return (
         <box

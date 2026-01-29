@@ -19,3 +19,4 @@ kratt
 .git
 .env
 !.env.example
+*.db*

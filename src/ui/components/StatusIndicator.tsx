@@ -4,15 +4,15 @@ import { colors, spacing } from '../theme';
 
 type StatusType = 'idle' | 'loading' | 'success' | 'error' | 'warning' | 'info';
 
-interface StatusIndicatorProps {
+type StatusIndicatorProps = {
     status: StatusType;
     message?: string;
     showIndicator?: boolean;
-}
+};
 
 const SPINNER_FRAMES = ['◐', '◓', '◑', '◒'];
 
-const statusConfig: Record<StatusType, { icon: string; color: string; label: string }> = {
+const STATUS_CONFIG: Record<StatusType, { icon: string; color: string; label: string }> = {
     idle: { icon: '◇', color: colors.fg.muted, label: 'Ready' },
     loading: { icon: '◐', color: colors.accent.primary, label: 'Thinking' },
     success: { icon: '◆', color: colors.semantic.success, label: 'Done' },
@@ -23,7 +23,7 @@ const statusConfig: Record<StatusType, { icon: string; color: string; label: str
 
 export function StatusIndicator({ status, message, showIndicator = true }: StatusIndicatorProps) {
     const [spinnerFrame, setSpinnerFrame] = useState(0);
-    const config = statusConfig[status];
+    const config = STATUS_CONFIG[status];
     const displayMessage = message || config.label;
 
     useEffect(() => {

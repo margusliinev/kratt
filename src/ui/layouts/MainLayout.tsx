@@ -1,11 +1,11 @@
 import type { ReactNode } from 'react';
 import { colors, spacing } from '../theme';
 
-interface MainLayoutProps {
+type MainLayoutProps = {
     children: ReactNode;
     header?: ReactNode;
     footer?: ReactNode;
-}
+};
 
 export function MainLayout({ children, header, footer }: MainLayoutProps) {
     return (

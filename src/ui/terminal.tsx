@@ -1,85 +1,135 @@
-import { streamChat, type Message } from '../common/chat';
-import { Logo, InputPrompt, HelpBar, ConversationPanel, Divider } from './components';
+import { Logo, InputPrompt, HelpBar, ConversationPanel, ConversationList, Divider } from './components';
 import { useTerminalDimensions, useKeyboard } from '@opentui/react';
+import { useChatSession, useConversations } from './hooks';
 import { MainLayout, ChatLayout } from './layouts';
-import { useCallback, useState, useRef } from 'react';
+import { useCallback, useState } from 'react';
 import { colors, spacing } from './theme';
 
-type View = 'welcome' | 'chat';
+type View = 'welcome' | 'chat' | 'history';
+
+const WELCOME_HINTS = [
+    { keys: 'Enter', action: 'Send' },
+    { keys: 'Ctrl+H', action: 'History' },
+    { keys: 'Ctrl+C', action: 'Exit' }
+];
+
+const CHAT_HINTS = [
+    { keys: 'Enter', action: 'Send' },
+    { keys: 'Ctrl+N', action: 'New Chat' },
+    { keys: 'Ctrl+H', action: 'History' },
+    { keys: 'Ctrl+C', action: 'Exit' }
+];
+
+const HISTORY_HINTS = [
+    { keys: '↑↓', action: 'Navigate' },
+    { keys: 'Enter', action: 'Open' },
+    { keys: 'Ctrl+N', action: 'New Chat' },
+    { keys: 'Ctrl+D', action: 'Delete' },
+    { keys: 'Esc', action: 'Back' }
+];
+
+function computeInputWidth(termWidth: number): number {
+    return Math.min(Math.max(termWidth - 6, 30), 100);
+}
 
 export function Terminal() {
     const { width: termWidth } = useTerminalDimensions();
     const [view, setView] = useState<View>('welcome');
     const [inputValue, setInputValue] = useState('');
-    const [messages, setMessages] = useState<Message[]>([]);
-    const [streamingContent, setStreamingContent] = useState<string | undefined>(undefined);
-    const [isLoading, setIsLoading] = useState(false);
-    const abortRef = useRef(false);
+    const [historyIndex, setHistoryIndex] = useState(0);
 
-    const inputWidth = Math.min(Math.max(termWidth - 6, 30), 100);
+    const { conversations, selectedId, select, create, remove, refresh } = useConversations();
+
+    const { messages, streamingContent, isLoading, submit } = useChatSession(selectedId);
+
+    const inputWidth = computeInputWidth(termWidth);
 
     const handleSubmit = useCallback(async () => {
         const prompt = inputValue.trim();
         if (!prompt || isLoading) return;
 
-        const userMessage: Message = { role: 'user', content: prompt };
-        const updatedMessages = [...messages, userMessage];
+        const targetId = selectedId ?? create();
 
-        setMessages(updatedMessages);
         setInputValue('');
-        setIsLoading(true);
-        setStreamingContent('');
-        abortRef.current = false;
 
         if (view === 'welcome') {
             setView('chat');
         }
 
-        try {
-            let fullResponse = '';
-            for await (const chunk of streamChat(updatedMessages)) {
-                if (abortRef.current) break;
-                fullResponse += chunk;
-                setStreamingContent(fullResponse);
-            }
-
-            if (!abortRef.current) {
-                setMessages((prev) => [...prev, { role: 'assistant', content: fullResponse }]);
-            }
-        } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : 'An error occurred';
-            setMessages((prev) => [...prev, { role: 'assistant', content: `Error: ${errorMessage}` }]);
-        } finally {
-            setStreamingContent(undefined);
-            setIsLoading(false);
-        }
-    }, [inputValue, messages, isLoading, view]);
+        await submit(prompt, targetId);
+        refresh();
+    }, [inputValue, isLoading, selectedId, view, create, submit, refresh]);
 
     const handleNewChat = useCallback(() => {
-        abortRef.current = true;
-        setMessages([]);
-        setStreamingContent(undefined);
+        select(null);
         setInputValue('');
-        setIsLoading(false);
         setView('welcome');
-    }, []);
+    }, [select]);
+
+    const handleOpenConversation = useCallback(
+        (id: string) => {
+            select(id);
+            setView('chat');
+        },
+        [select]
+    );
+
+    const handleDeleteSelected = useCallback(() => {
+        if (conversations.length === 0) return;
+        const conv = conversations[historyIndex];
+        if (conv) {
+            remove(conv.id);
+            setHistoryIndex(Math.max(0, Math.min(historyIndex, conversations.length - 2)));
+        }
+    }, [conversations, historyIndex, remove]);
 
     useKeyboard((key) => {
-        if (key.ctrl && key.name === 'l') {
+        if (key.ctrl && key.name === 'n' && (view === 'chat' || view === 'history')) {
             handleNewChat();
+        }
+        if (key.ctrl && key.name === 'h') {
+            if (view === 'history') {
+                if (selectedId) {
+                    setView('chat');
+                } else {
+                    setView('welcome');
+                }
+            } else {
+                refresh();
+                setHistoryIndex(0);
+                setView('history');
+            }
+        }
+        if (key.ctrl && key.name === 'd' && view === 'history') {
+            handleDeleteSelected();
+        }
+        if (key.name === 'escape' && view === 'history') {
+            if (selectedId) {
+                setView('chat');
+            } else {
+                setView('welcome');
+            }
         }
     });
 
-    const welcomeHints = [
-        { keys: 'Enter', action: 'Send' },
-        { keys: 'Ctrl+C', action: 'Exit' }
-    ];
-
-    const chatHints = [
-        { keys: 'Enter', action: 'Send' },
-        { keys: 'Ctrl+L', action: 'New Chat' },
-        { keys: 'Ctrl+C', action: 'Exit' }
-    ];
+    if (view === 'history') {
+        return (
+            <MainLayout header={<Logo showTagline={false} size='sm' />} footer={<HelpBar hints={HISTORY_HINTS} />}>
+                <box flexDirection='column' alignItems='center' gap={spacing.md}>
+                    <text fg={colors.fg.secondary}>Conversation History</text>
+                    <Divider length={40} variant='solid' />
+                    <ConversationList
+                        conversations={conversations}
+                        selectedIndex={historyIndex}
+                        onSelectIndex={setHistoryIndex}
+                        onOpen={handleOpenConversation}
+                        width={50}
+                    />
+                    {conversations.length === 0 && <text fg={colors.fg.muted}>Press Ctrl+N to start a new conversation</text>}
+                </box>
+            </MainLayout>
+        );
+    }
 
     if (view === 'welcome') {
         return (
@@ -88,7 +138,7 @@ export function Terminal() {
                 footer={
                     <box flexDirection='column' alignItems='center' gap={spacing.sm}>
                         <Divider length={50} variant='solid' />
-                        <HelpBar hints={welcomeHints} />
+                        <HelpBar hints={WELCOME_HINTS} />
                     </box>
                 }
             >
@@ -125,7 +175,7 @@ export function Terminal() {
                     width={inputWidth}
                 />
             }
-            footer={<HelpBar hints={chatHints} />}
+            footer={<HelpBar hints={CHAT_HINTS} />}
         />
     );
 }

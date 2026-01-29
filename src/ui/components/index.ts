@@ -1,3 +1,4 @@
+export { ConversationList } from './ConversationList';
 export { ConversationPanel } from './ConversationPanel';
 export { StatusIndicator } from './StatusIndicator';
 export { MessageBubble } from './MessageBubble';

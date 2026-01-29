@@ -1,9 +1,9 @@
 import { colors, spacing } from '../theme';
 
-interface LogoProps {
+type LogoProps = {
     showTagline?: boolean;
     size?: 'sm' | 'md' | 'lg';
-}
+};
 
 export function Logo({ showTagline = true, size = 'md' }: LogoProps) {
     const font = size === 'sm' ? 'tiny' : 'block';

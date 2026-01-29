@@ -1,8 +1,8 @@
 import { colors, spacing, widths, borderStyles } from '../theme';
 import { TextAttributes } from '@opentui/core';
 
-interface InputPromptProps {
-    value?: string;
+type InputPromptProps = {
+    value: string;
     placeholder?: string;
     focused?: boolean;
     onInput?: (value: string) => void;
@@ -10,6 +10,13 @@ interface InputPromptProps {
     width?: number;
     disabled?: boolean;
     loading?: boolean;
+};
+
+function computeInnerWidth(width: number): number {
+    if (width < 60) return width;
+    if (width < 80) return width + 5;
+    if (width < 100) return width + 10;
+    return width + 15;
 }
 
 export function InputPrompt({
@@ -23,7 +30,7 @@ export function InputPrompt({
     loading = false
 }: InputPromptProps) {
     const promptColor = loading ? colors.fg.muted : focused ? colors.accent.primary : colors.fg.muted;
-    const inputWidth = width < 60 ? width : width < 80 ? width + 5 : width < 100 ? width + 10 : width + 15;
+    const innerWidth = computeInnerWidth(width);
 
     return (
         <box
@@ -43,7 +50,7 @@ export function InputPrompt({
 
             <input
                 value={value}
-                width={inputWidth}
+                width={innerWidth}
                 placeholder={disabled ? '' : placeholder}
                 backgroundColor={colors.bg.secondary}
                 focusedBackgroundColor={colors.bg.secondary}

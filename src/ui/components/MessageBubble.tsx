@@ -1,11 +1,11 @@
 import { colors, spacing, syntaxStyle } from '../theme';
 import { TextAttributes } from '@opentui/core';
 
-interface MessageBubbleProps {
-    role: 'user' | 'assistant';
+type MessageBubbleProps = {
+    role: 'user' | 'assistant' | 'system';
     content: string;
     streaming?: boolean;
-}
+};
 
 export function MessageBubble({ role, content, streaming = false }: MessageBubbleProps) {
     const isUser = role === 'user';
