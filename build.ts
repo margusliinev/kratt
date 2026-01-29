@@ -25,13 +25,13 @@ const result = await Bun.build({
     entrypoints: ['src/index.tsx'],
     compile: { outfile: 'kratt' },
     target: 'bun',
-    minify: true,
+    minify: true
 });
 
 const outputTable = result.outputs.map((output) => ({
     File: path.relative(process.cwd(), output.path),
     Size: formatFileSize(output.size),
-    Type: output.kind,
+    Type: output.kind
 }));
 
 console.table(outputTable);

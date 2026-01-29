@@ -33,25 +33,22 @@ function rowToSummary(row: ConversationSummaryRow): ConversationSummary {
 export const conversationRepository = {
     create(id: string, title: string): Conversation {
         const now = Date.now();
-        db.run(
-            'INSERT INTO conversations (id, title, created_at, updated_at) VALUES (?, ?, ?, ?)',
-            [id, title, now, now]
-        );
+        db.run('INSERT INTO conversations (id, title, created_at, updated_at) VALUES (?, ?, ?, ?)', [id, title, now, now]);
         return { id, title, createdAt: now, updatedAt: now };
     },
 
     get(id: string): Conversation | null {
-        const row = db.query<ConversationRow, [string]>(
-            'SELECT id, title, created_at, updated_at FROM conversations WHERE id = ?'
-        ).get(id);
+        const row = db.query<ConversationRow, [string]>('SELECT id, title, created_at, updated_at FROM conversations WHERE id = ?').get(id);
         return row ? rowToConversation(row) : null;
     },
 
     list(limit = 50, offset = 0): ConversationSummary[] {
-        const rows = db.query<ConversationSummaryRow, [number, number]>(`
-            SELECT 
-                c.id, 
-                c.title, 
+        const rows = db
+            .query<ConversationSummaryRow, [number, number]>(
+                `
+            SELECT
+                c.id,
+                c.title,
                 c.updated_at,
                 COUNT(m.id) as message_count
             FROM conversations c
@@ -59,15 +56,14 @@ export const conversationRepository = {
             GROUP BY c.id
             ORDER BY c.updated_at DESC
             LIMIT ? OFFSET ?
-        `).all(limit, offset);
+        `
+            )
+            .all(limit, offset);
         return rows.map(rowToSummary);
     },
 
     updateTitle(id: string, title: string): void {
-        db.run(
-            'UPDATE conversations SET title = ?, updated_at = ? WHERE id = ?',
-            [title, Date.now(), id]
-        );
+        db.run('UPDATE conversations SET title = ?, updated_at = ? WHERE id = ?', [title, Date.now(), id]);
     },
 
     touch(id: string): void {
