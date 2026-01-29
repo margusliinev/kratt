@@ -6,19 +6,11 @@ interface LogoProps {
 }
 
 export function Logo({ showTagline = true, size = 'md' }: LogoProps) {
-    if (size === 'sm') {
-        return (
-            <box flexDirection='row' alignItems='center' gap={spacing.xs}>
-                <text fg={colors.border.default}>{'['}</text>
-                <text fg={colors.accent.primary}>KRATT</text>
-                <text fg={colors.border.default}>{']'}</text>
-            </box>
-        );
-    }
+    const font = size === 'sm' ? 'tiny' : 'block';
 
     return (
-        <box flexDirection='column' alignItems='center' gap={spacing.md}>
-            <ascii-font font='block' text='KRATT' color={colors.accent.primary} />
+        <box flexDirection='column' alignItems='center' gap={size === 'sm' ? spacing.none : spacing.md}>
+            <ascii-font font={font} text='KRATT' color={colors.accent.primary} />
 
             {showTagline && (
                 <box flexDirection='row' gap={spacing.sm}>

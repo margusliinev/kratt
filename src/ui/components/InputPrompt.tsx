@@ -23,6 +23,7 @@ export function InputPrompt({
     loading = false
 }: InputPromptProps) {
     const promptColor = loading ? colors.fg.muted : focused ? colors.accent.primary : colors.fg.muted;
+    const inputWidth = width < 60 ? width : width < 80 ? width + 5 : width < 100 ? width + 10 : width + 15;
 
     return (
         <box
@@ -42,11 +43,11 @@ export function InputPrompt({
 
             <input
                 value={value}
+                width={inputWidth}
                 placeholder={disabled ? '' : placeholder}
-                width={width - 8}
                 backgroundColor={colors.bg.secondary}
                 focusedBackgroundColor={colors.bg.secondary}
-                textColor={disabled ? colors.fg.muted : colors.fg.primary}
+                textColor={colors.fg.primary}
                 cursorColor={colors.special.cursor}
                 focused={focused && !disabled}
                 onInput={onInput}

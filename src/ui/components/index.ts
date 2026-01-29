@@ -1,4 +1,6 @@
+export { ConversationPanel } from './ConversationPanel';
 export { StatusIndicator } from './StatusIndicator';
+export { MessageBubble } from './MessageBubble';
 export { ResponsePanel } from './ResponsePanel';
 export { InputPrompt } from './InputPrompt';
 export { KeyHint, HelpBar } from './KeyHint';
