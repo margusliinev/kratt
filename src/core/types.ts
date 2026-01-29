@@ -1,6 +1,9 @@
 export type MessageStatus = 'final' | 'streaming' | 'aborted' | 'error';
 export type MessageRole = 'user' | 'assistant' | 'system';
 
+export type LlmMessageRole = 'user' | 'assistant';
+export type LlmMessage = { role: LlmMessageRole; content: string };
+
 export type Conversation = {
     id: string;
     title: string;
@@ -29,3 +32,5 @@ export type ConversationWithMessages = {
     conversation: Conversation;
     messages: Message[];
 };
+
+export type Dimension = number | 'auto' | `${number}%`;

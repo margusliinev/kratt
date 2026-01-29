@@ -1,6 +1,6 @@
-import type { ConversationSummary, ConversationWithMessages, Message } from '../types';
-import { conversationRepo, messageRepo } from '../repos';
-import { streamChat } from '../../common/chat';
+import type { ConversationSummary, ConversationWithMessages, LlmMessage, Message } from '../types';
+import { conversationRepository, messageRepository } from '../repositories';
+import { streamChat } from './anthropic';
 
 const THROTTLE_MS = 100;
 
@@ -20,34 +20,30 @@ export type StreamChunk = {
 
 export const chatService = {
     listConversations(limit = 50, offset = 0): ConversationSummary[] {
-        return conversationRepo.list(limit, offset);
+        return conversationRepository.list(limit, offset);
     },
 
     createConversation(title?: string): { id: string } {
         const id = generateId();
-        conversationRepo.create(id, title ?? 'New Conversation');
+        conversationRepository.create(id, title ?? 'New Conversation');
         return { id };
     },
 
     loadConversation(id: string): ConversationWithMessages | null {
-        const conversation = conversationRepo.get(id);
+        const conversation = conversationRepository.get(id);
         if (!conversation) return null;
 
-        const messages = messageRepo.listByConversation(id);
+        const messages = messageRepository.listByConversation(id);
         return { conversation, messages };
     },
 
     deleteConversation(id: string): void {
-        conversationRepo.delete(id);
+        conversationRepository.delete(id);
     },
 
-    async *streamAssistantReply(
-        conversationId: string,
-        userText: string,
-        options?: { signal?: AbortSignal }
-    ): AsyncGenerator<StreamChunk> {
+    async *streamAssistantReply(conversationId: string, userText: string, options?: { signal?: AbortSignal }): AsyncGenerator<StreamChunk> {
         const userMessageId = generateId();
-        messageRepo.insert({
+        messageRepository.insert({
             id: userMessageId,
             conversationId,
             role: 'user',
@@ -55,15 +51,15 @@ export const chatService = {
             status: 'final'
         });
 
-        const existingMessages = messageRepo.listByConversation(conversationId);
-        const isFirstMessage = existingMessages.length === 1;
+        const conversationMessages = messageRepository.listByConversation(conversationId);
+        const isFirstMessage = conversationMessages.length === 1;
 
         if (isFirstMessage) {
-            conversationRepo.updateTitle(conversationId, deriveTitle(userText));
+            conversationRepository.updateTitle(conversationId, deriveTitle(userText));
         }
 
         const assistantMessageId = generateId();
-        messageRepo.insert({
+        messageRepository.insert({
             id: assistantMessageId,
             conversationId,
             role: 'assistant',
@@ -71,10 +67,9 @@ export const chatService = {
             status: 'streaming'
         });
 
-        const chatMessages = existingMessages.map((m) => ({
-            role: m.role as 'user' | 'assistant',
-            content: m.content
-        }));
+        const chatMessages: LlmMessage[] = conversationMessages
+            .filter((m): m is Message & { role: 'user' | 'assistant' } => m.role !== 'system')
+            .map((m) => ({ role: m.role, content: m.content }));
 
         let fullText = '';
         let lastPersistTime = 0;
@@ -83,8 +78,8 @@ export const chatService = {
         try {
             for await (const chunk of streamChat(chatMessages)) {
                 if (signal?.aborted) {
-                    messageRepo.updateContent(assistantMessageId, fullText, 'aborted');
-                    conversationRepo.touch(conversationId);
+                    messageRepository.updateContent(assistantMessageId, fullText, 'aborted');
+                    conversationRepository.touch(conversationId);
                     return;
                 }
 
@@ -92,25 +87,25 @@ export const chatService = {
 
                 const now = Date.now();
                 if (now - lastPersistTime >= THROTTLE_MS) {
-                    messageRepo.updateContent(assistantMessageId, fullText);
+                    messageRepository.updateContent(assistantMessageId, fullText);
                     lastPersistTime = now;
                 }
 
                 yield { delta: chunk, fullText };
             }
 
-            messageRepo.updateContent(assistantMessageId, fullText, 'final');
-            conversationRepo.touch(conversationId);
+            messageRepository.updateContent(assistantMessageId, fullText, 'final');
+            conversationRepository.touch(conversationId);
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'An error occurred';
             const errorContent = fullText ? `${fullText}\n\nError: ${errorMessage}` : `Error: ${errorMessage}`;
-            messageRepo.updateContent(assistantMessageId, errorContent, 'error');
-            conversationRepo.touch(conversationId);
+            messageRepository.updateContent(assistantMessageId, errorContent, 'error');
+            conversationRepository.touch(conversationId);
             throw error;
         }
     },
 
     getMessages(conversationId: string): Message[] {
-        return messageRepo.listByConversation(conversationId);
+        return messageRepository.listByConversation(conversationId);
     }
 };

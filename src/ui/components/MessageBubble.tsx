@@ -1,20 +1,22 @@
+import type { MessageRole } from '../../core';
 import { colors, spacing, syntaxStyle } from '../theme';
 import { TextAttributes } from '@opentui/core';
 
 type MessageBubbleProps = {
-    role: 'user' | 'assistant' | 'system';
+    role: MessageRole;
     content: string;
     streaming?: boolean;
 };
 
 export function MessageBubble({ role, content, streaming = false }: MessageBubbleProps) {
-    const isUser = role === 'user';
+    const label = role === 'user' ? 'You' : role === 'assistant' ? 'Kratt' : 'System';
+    const labelColor = role === 'user' ? colors.fg.secondary : role === 'assistant' ? colors.accent.primary : colors.fg.muted;
 
     return (
         <box width='100%' flexDirection='column' paddingBottom={spacing.sm}>
             <box flexDirection='row' gap={spacing.sm} paddingBottom={spacing.xs}>
-                <text fg={isUser ? colors.fg.secondary : colors.accent.primary} attributes={TextAttributes.BOLD}>
-                    {isUser ? 'You' : 'Kratt'}
+                <text fg={labelColor} attributes={TextAttributes.BOLD}>
+                    {label}
                 </text>
             </box>
 

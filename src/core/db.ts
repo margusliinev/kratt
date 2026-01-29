@@ -1,7 +1,6 @@
 import { Database } from 'bun:sqlite';
-import { env } from '../common/env';
 
-const DB_PATH = env.NODE_ENV === 'development' ? 'kratt-dev.db' : 'kratt.db';
+const DB_PATH = 'kratt.db';
 
 function createDatabase(): Database {
     const db = new Database(DB_PATH);

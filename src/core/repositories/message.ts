@@ -23,18 +23,12 @@ function rowToMessage(row: MessageRow): Message {
     };
 }
 
-export const messageRepo = {
-    insert(params: {
-        id: string;
-        conversationId: string;
-        role: MessageRole;
-        content: string;
-        status?: MessageStatus;
-    }): Message {
+export const messageRepository = {
+    insert(params: { id: string; conversationId: string; role: MessageRole; content: string; status?: MessageStatus }): Message {
         const now = Date.now();
         const status = params.status ?? 'final';
         db.run(
-            `INSERT INTO messages (id, conversation_id, role, content, status, created_at, updated_at) 
+            `INSERT INTO messages (id, conversation_id, role, content, status, created_at, updated_at)
              VALUES (?, ?, ?, ?, ?, ?, ?)`,
             [params.id, params.conversationId, params.role, params.content, status, now, now]
         );
@@ -50,41 +44,36 @@ export const messageRepo = {
     },
 
     listByConversation(conversationId: string): Message[] {
-        const rows = db.query<MessageRow, [string]>(
-            `SELECT id, conversation_id, role, content, status, created_at, updated_at 
-             FROM messages 
-             WHERE conversation_id = ? 
+        const rows = db
+            .query<MessageRow, [string]>(
+                `SELECT id, conversation_id, role, content, status, created_at, updated_at
+             FROM messages
+             WHERE conversation_id = ?
              ORDER BY created_at ASC`
-        ).all(conversationId);
+            )
+            .all(conversationId);
         return rows.map(rowToMessage);
     },
 
     updateContent(id: string, content: string, status?: MessageStatus): void {
         if (status) {
-            db.run(
-                'UPDATE messages SET content = ?, status = ?, updated_at = ? WHERE id = ?',
-                [content, status, Date.now(), id]
-            );
+            db.run('UPDATE messages SET content = ?, status = ?, updated_at = ? WHERE id = ?', [content, status, Date.now(), id]);
         } else {
-            db.run(
-                'UPDATE messages SET content = ?, updated_at = ? WHERE id = ?',
-                [content, Date.now(), id]
-            );
+            db.run('UPDATE messages SET content = ?, updated_at = ? WHERE id = ?', [content, Date.now(), id]);
         }
     },
 
     updateStatus(id: string, status: MessageStatus): void {
-        db.run(
-            'UPDATE messages SET status = ?, updated_at = ? WHERE id = ?',
-            [status, Date.now(), id]
-        );
+        db.run('UPDATE messages SET status = ?, updated_at = ? WHERE id = ?', [status, Date.now(), id]);
     },
 
     get(id: string): Message | null {
-        const row = db.query<MessageRow, [string]>(
-            `SELECT id, conversation_id, role, content, status, created_at, updated_at 
+        const row = db
+            .query<MessageRow, [string]>(
+                `SELECT id, conversation_id, role, content, status, created_at, updated_at
              FROM messages WHERE id = ?`
-        ).get(id);
+            )
+            .get(id);
         return row ? rowToMessage(row) : null;
     },
 

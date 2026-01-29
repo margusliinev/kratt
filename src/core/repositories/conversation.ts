@@ -30,7 +30,7 @@ function rowToSummary(row: ConversationSummaryRow): ConversationSummary {
     };
 }
 
-export const conversationRepo = {
+export const conversationRepository = {
     create(id: string, title: string): Conversation {
         const now = Date.now();
         db.run(

@@ -1,11 +1,7 @@
 import type { Model } from '@anthropic-ai/sdk/resources';
-import Anthropic from '@anthropic-ai/sdk';
-import { env } from './env';
-
-export interface Message {
-    role: 'user' | 'assistant';
-    content: string;
-}
+import type { LlmMessage } from '../types';
+import { Anthropic } from '@anthropic-ai/sdk';
+import { env } from '../../config/env';
 
 const client = new Anthropic({
     apiKey: env.ANTHROPIC_API_KEY
@@ -16,7 +12,7 @@ const MAX_TOKENS = 8192;
 const SYSTEM_PROMPT = `You are Kratt, an AI coding assistant. You help users with software development tasks.
 Be concise and helpful. When showing code, use markdown code blocks with language identifiers.`;
 
-export async function* streamChat(messages: Message[]): AsyncGenerator<string> {
+export async function* streamChat(messages: LlmMessage[]): AsyncGenerator<string> {
     const stream = client.messages.stream({
         model: MODEL,
         max_tokens: MAX_TOKENS,

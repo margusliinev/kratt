@@ -1,4 +1,4 @@
-import type { Dimension } from '../../common/types';
+import type { Dimension } from '../../core/types';
 import type { Message } from '../../core';
 import { MessageBubble } from './MessageBubble';
 import { colors, spacing } from '../theme';

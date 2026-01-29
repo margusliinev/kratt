@@ -13,10 +13,7 @@ type InputPromptProps = {
 };
 
 function computeInnerWidth(width: number): number {
-    if (width < 60) return width;
-    if (width < 80) return width + 5;
-    if (width < 100) return width + 10;
-    return width + 15;
+    return Math.max(width - 4, 20);
 }
 
 export function InputPrompt({
