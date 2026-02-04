@@ -118,6 +118,7 @@ kratt/
 │   ├── core/            # Business logic
 │   │   ├── repositories/    # Data access layer
 │   │   ├── services/        # AI and conversation services
+│   │   ├── tools/           # Tool definitions and execution
 │   │   ├── db.ts            # Database setup
 │   │   ├── types.ts         # Type definitions
 │   │   └── index.ts
@@ -126,7 +127,8 @@ kratt/
 │   │   ├── hooks/           # React hooks
 │   │   ├── layouts/         # Layout components
 │   │   ├── theme/           # Styling and colors
-│   │   └── terminal.tsx     # Main terminal component
+│   │   ├── terminal.tsx     # Main terminal component
+│   │   └── index.ts
 │   └── index.tsx        # Application entry point
 ├── docs/
 │   └── assets/          # Screenshots and images

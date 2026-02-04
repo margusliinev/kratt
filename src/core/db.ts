@@ -38,3 +38,7 @@ function createDatabase(): Database {
 }
 
 export const db = createDatabase();
+
+export function initDatabase(): void {
+    void db;
+}

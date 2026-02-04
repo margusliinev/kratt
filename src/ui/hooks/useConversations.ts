@@ -1,14 +1,14 @@
 import type { ConversationSummary } from '../../core';
-import { useCallback, useState, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { chatService } from '../../core';
 
 export type UseConversationsReturn = {
     conversations: ConversationSummary[];
     selectedId: string | null;
     isLoading: boolean;
-    select: (id: string | null) => void;
+    select: (_id: string | null) => void;
     create: () => string;
-    remove: (id: string) => void;
+    remove: (_id: string) => void;
     refresh: () => void;
 };
 

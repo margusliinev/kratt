@@ -1,13 +1,13 @@
-import { spacing, gap, padding, margin, widths, heights } from './spacing';
 import { borderStyles, defaultBorderStyle } from './borders';
-import { fonts, textStyles } from './typography';
-import { syntaxStyle } from './syntax';
 import { colors } from './colors';
+import { spacing, gap, padding, margin, widths, heights } from './spacing';
+import { syntaxStyle } from './syntax';
+import { fonts, textStyles } from './typography';
 
-export type { Colors } from './colors';
 export type { Spacing, Widths, Heights } from './spacing';
 export type { Fonts, TextStyles } from './typography';
 export type { BorderStyles } from './borders';
+export type { Colors } from './colors';
 
 export { spacing, gap, padding, margin, widths, heights } from './spacing';
 export { borderStyles, defaultBorderStyle } from './borders';

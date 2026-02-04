@@ -1,17 +1,33 @@
-import type { Dimension } from '../../core/types';
-import type { Message } from '../../core';
-import { MessageBubble } from './MessageBubble';
+import type { Dimension, Message, ToolUseEvent } from '../../core';
 import { colors, spacing } from '../theme';
+import { MessageBubble } from './MessageBubble';
+import { ToolBubble } from './ToolBubble';
 
 type ConversationPanelProps = {
     messages: Message[];
     streamingContent?: string;
+    toolEvents?: ToolUseEvent[];
     width?: Dimension;
     height?: Dimension;
 };
 
-export function ConversationPanel({ messages, streamingContent, width = '100%', height = '100%' }: ConversationPanelProps) {
-    const hasMessages = messages.length > 0 || streamingContent;
+export function ConversationPanel({
+    messages,
+    streamingContent,
+    toolEvents = [],
+    width = '100%',
+    height = '100%'
+}: ConversationPanelProps) {
+    const hasMessages = messages.length > 0 || streamingContent || toolEvents.length > 0;
+    const messagesToRender = messages.filter((m) => m.status !== 'streaming');
+
+    const lastAssistantIndex = messagesToRender.findLastIndex((m) => m.role === 'assistant');
+    const hasToolEvents = toolEvents.length > 0;
+
+    const messagesBeforeLastAssistant =
+        hasToolEvents && lastAssistantIndex >= 0 ? messagesToRender.slice(0, lastAssistantIndex) : messagesToRender;
+
+    const lastAssistantMessage = hasToolEvents && lastAssistantIndex >= 0 ? messagesToRender[lastAssistantIndex] : null;
 
     return (
         <scrollbox
@@ -37,9 +53,17 @@ export function ConversationPanel({ messages, streamingContent, width = '100%', 
                 </box>
             )}
 
-            {messages.map((message) => (
+            {messagesBeforeLastAssistant.map((message) => (
                 <MessageBubble key={message.id} role={message.role} content={message.content} />
             ))}
+
+            {toolEvents.map((event) => (
+                <ToolBubble key={event.toolUseId} event={event} />
+            ))}
+
+            {lastAssistantMessage && (
+                <MessageBubble key={lastAssistantMessage.id} role={lastAssistantMessage.role} content={lastAssistantMessage.content} />
+            )}
 
             {streamingContent !== undefined && <MessageBubble role='assistant' content={streamingContent} streaming={true} />}
         </scrollbox>

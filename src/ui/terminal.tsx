@@ -1,7 +1,7 @@
-import { Logo, InputPrompt, HelpBar, ConversationPanel, ConversationList, Divider } from './components';
-import { useTerminalDimensions, useKeyboard } from '@opentui/react';
+import { ConversationList, ConversationPanel, Divider, HelpBar, InputPrompt, Logo } from './components';
+import { useKeyboard, useTerminalDimensions } from '@opentui/react';
 import { useChatSession, useConversations } from './hooks';
-import { MainLayout, ChatLayout } from './layouts';
+import { ChatLayout, MainLayout } from './layouts';
 import { useCallback, useState } from 'react';
 import { colors, spacing } from './theme';
 
@@ -39,8 +39,7 @@ export function Terminal() {
     const [historyIndex, setHistoryIndex] = useState(0);
 
     const { conversations, selectedId, select, create, remove, refresh } = useConversations();
-
-    const { messages, streamingContent, isLoading, submit } = useChatSession(selectedId);
+    const { messages, streamingContent, toolEvents, isLoading, submit } = useChatSession(selectedId);
 
     const inputWidth = computeInputWidth(termWidth);
 
@@ -162,7 +161,7 @@ export function Terminal() {
     return (
         <ChatLayout
             header={<Logo showTagline={false} size='sm' />}
-            conversation={<ConversationPanel messages={messages} streamingContent={streamingContent} />}
+            conversation={<ConversationPanel messages={messages} streamingContent={streamingContent} toolEvents={toolEvents} />}
             input={
                 <InputPrompt
                     value={inputValue}

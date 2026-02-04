@@ -1,15 +1,16 @@
-import type { Message } from '../../core';
-import { useCallback, useState, useRef, useEffect } from 'react';
+import type { Message, ToolUseEvent } from '../../core';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { chatService } from '../../core';
 
 export type ChatSessionState = {
     messages: Message[];
     streamingContent: string | undefined;
+    toolEvents: ToolUseEvent[];
     isLoading: boolean;
 };
 
 export type ChatSessionActions = {
-    submit: (prompt: string, targetConversationId?: string) => Promise<void>;
+    submit: (_prompt: string, _targetConversationId?: string) => Promise<void>;
     reset: () => void;
 };
 
@@ -21,6 +22,7 @@ export type UseChatSessionReturn = ChatSessionState &
 export function useChatSession(conversationId: string | null): UseChatSessionReturn {
     const [messages, setMessages] = useState<Message[]>([]);
     const [streamingContent, setStreamingContent] = useState<string | undefined>(undefined);
+    const [toolEvents, setToolEvents] = useState<ToolUseEvent[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const abortControllerRef = useRef<AbortController | null>(null);
 
@@ -28,6 +30,7 @@ export function useChatSession(conversationId: string | null): UseChatSessionRet
         if (!conversationId) {
             setMessages([]);
             setStreamingContent(undefined);
+            setToolEvents([]);
             setIsLoading(false);
             return;
         }
@@ -39,6 +42,7 @@ export function useChatSession(conversationId: string | null): UseChatSessionRet
             setMessages([]);
         }
         setStreamingContent(undefined);
+        setToolEvents([]);
         setIsLoading(false);
     }, [conversationId]);
 
@@ -50,6 +54,7 @@ export function useChatSession(conversationId: string | null): UseChatSessionRet
 
             setIsLoading(true);
             setStreamingContent('');
+            setToolEvents([]);
 
             abortControllerRef.current = new AbortController();
             const signal = abortControllerRef.current.signal;
@@ -57,27 +62,44 @@ export function useChatSession(conversationId: string | null): UseChatSessionRet
             try {
                 const stream = chatService.streamAssistantReply(convId, trimmedPrompt, { signal });
 
-                setMessages((prev) => [
-                    ...prev,
-                    {
-                        id: crypto.randomUUID(),
-                        conversationId: convId,
-                        role: 'user',
-                        content: trimmedPrompt,
-                        status: 'final',
-                        createdAt: Date.now(),
-                        updatedAt: Date.now()
-                    }
-                ]);
-
                 for await (const chunk of stream) {
                     if (signal.aborted) break;
-                    setStreamingContent(chunk.fullText);
+
+                    if (chunk.type === 'user_message') {
+                        setMessages((prev) => [...prev, chunk.message]);
+                    } else if (chunk.type === 'text') {
+                        setStreamingContent(chunk.fullText);
+                    } else if (chunk.type === 'text_end') {
+                        setMessages((prev) => [
+                            ...prev,
+                            {
+                                id: `streaming-${Date.now()}`,
+                                conversationId: convId,
+                                role: 'assistant',
+                                content: chunk.fullText,
+                                status: 'final',
+                                createdAt: Date.now(),
+                                updatedAt: Date.now()
+                            }
+                        ]);
+                        setStreamingContent('');
+                    } else if (chunk.type === 'tool_use') {
+                        setToolEvents((prev) => {
+                            const existingIndex = prev.findIndex((e) => e.toolUseId === chunk.event.toolUseId);
+                            if (existingIndex >= 0) {
+                                const existing = prev[existingIndex]!;
+                                const updated = [...prev];
+                                updated[existingIndex] = { ...chunk.event, timestamp: existing.timestamp };
+                                return updated;
+                            }
+                            return [...prev, { ...chunk.event, timestamp: Date.now() }];
+                        });
+                    }
                 }
 
                 const updatedMessages = chatService.getMessages(convId);
                 setMessages(updatedMessages);
-            } catch (error) {
+            } catch {
                 const updatedMessages = chatService.getMessages(convId);
                 setMessages(updatedMessages);
             } finally {
@@ -93,6 +115,7 @@ export function useChatSession(conversationId: string | null): UseChatSessionRet
         abortControllerRef.current?.abort();
         setMessages([]);
         setStreamingContent(undefined);
+        setToolEvents([]);
         setIsLoading(false);
     }, []);
 
@@ -100,6 +123,7 @@ export function useChatSession(conversationId: string | null): UseChatSessionRet
         conversationId,
         messages,
         streamingContent,
+        toolEvents,
         isLoading,
         submit,
         reset

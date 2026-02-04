@@ -1,7 +1,7 @@
 import type { ConversationSummary } from '../../core';
 import { TextAttributes } from '@opentui/core';
-import { colors, spacing } from '../theme';
 import { useKeyboard } from '@opentui/react';
+import { colors, spacing } from '../theme';
 
 type ConversationListProps = {
     conversations: ConversationSummary[];
@@ -87,8 +87,8 @@ export function ConversationList({ conversations, selectedIndex, onSelectIndex, 
 
     return (
         <box width={width} flexDirection='column'>
-            {conversations.map((conv, index) => (
-                <ConversationItem key={conv.id} conversation={conv} isSelected={index === selectedIndex} width={width} />
+            {conversations.map((conversation, index) => (
+                <ConversationItem key={conversation.id} conversation={conversation} isSelected={index === selectedIndex} width={width} />
             ))}
         </box>
     );

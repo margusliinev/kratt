@@ -1,4 +1,4 @@
-import { colors, spacing, widths, borderStyles } from '../theme';
+import { borderStyles, colors, spacing, widths } from '../theme';
 import { TextAttributes } from '@opentui/core';
 
 type InputPromptProps = {
@@ -17,7 +17,7 @@ function computeInnerWidth(width: number): number {
 }
 
 export function InputPrompt({
-    value,
+    value: inputValue,
     placeholder = 'Ask anything...',
     focused = true,
     onInput,
@@ -46,7 +46,7 @@ export function InputPrompt({
             </text>
 
             <input
-                value={value}
+                value={inputValue}
                 width={innerWidth}
                 placeholder={disabled ? '' : placeholder}
                 backgroundColor={colors.bg.secondary}
